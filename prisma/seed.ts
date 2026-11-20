@@ -1,4 +1,5 @@
-// Seeds the six demo users from docs/specs/02-design.md Reference B.
+// Seeds the six demo users from docs/specs/02-design.md Reference B and the
+// five leave types from brief §7.2 (design §1 LeaveType).
 // Run with: npx prisma db seed
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
@@ -59,6 +60,16 @@ const demoUsers = [
   },
 ];
 
+// The five fixed choices from brief §7.2 — upserted on `code`, so re-running
+// the seed never duplicates them.
+const leaveTypes = [
+  { code: 'ANNUAL', label: 'Annual leave' },
+  { code: 'MATERNITY', label: 'Maternity leave' },
+  { code: 'UNPAID', label: 'Unpaid leave' },
+  { code: 'COMPASSIONATE', label: 'Compassionate leave' },
+  { code: 'OTHER', label: 'Other' },
+];
+
 async function main() {
   const hash = await bcrypt.hash(DEMO_PASSWORD, 10);
   for (const user of demoUsers) {
@@ -69,6 +80,15 @@ async function main() {
     });
   }
   console.log(`Seeded ${demoUsers.length} demo users (password stored as bcrypt hash).`);
+
+  for (const type of leaveTypes) {
+    await prisma.leaveType.upsert({
+      where: { code: type.code },
+      update: { label: type.label },
+      create: type,
+    });
+  }
+  console.log(`Seeded ${leaveTypes.length} leave types.`);
 }
 
 main()

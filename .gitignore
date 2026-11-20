@@ -1,0 +1,16 @@
+# dependencies
+/node_modules
+
+# next.js build output
+/.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# environment & secrets — never commit (design spec rule 13)
+.env
+.env.*
+!.env.example
+
+# SQLite database file
+/prisma/*.db
+/prisma/*.db-journal

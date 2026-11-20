@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+/* Sunset backdrop for every screen (design spec §8). Pure CSS — no image
+   asset, so it stays crisp at any window size. */
+.sunset-bg {
+  background: linear-gradient(
+    to bottom,
+    #43205f 0%,
+    #772e80 18%,
+    #c14a99 38%,
+    #f2a05f 52%,
+    #b565ab 62%,
+    #7457cc 80%,
+    #4b41bf 100%
+  );
+}
+
+/* Frosted-glass card from the mockup. */
+.glass-card {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 45px rgba(26, 8, 60, 0.28);
+}
+

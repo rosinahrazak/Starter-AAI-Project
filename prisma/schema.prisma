@@ -20,4 +20,43 @@ model User {
   division    String // one of the divisions in design Reference A
   designation String // job title from the chosen division
   createdAt   DateTime @default(now())
+
+  employeeRequests   LeaveRequest[] @relation("EmployeeRequests")
+  supervisorRequests LeaveRequest[] @relation("SupervisorRequests")
+  hrOfficerRequests  LeaveRequest[] @relation("HrOfficerRequests")
+}
+
+// The five fixed choices from brief §7.2, created by the seed, never edited
+// from the UI. The "Other" description rule is enforced in code, not here.
+model LeaveType {
+  id       Int            @id @default(autoincrement())
+  code     String         @unique // ANNUAL | MATERNITY | UNPAID | COMPASSIONATE | OTHER
+  label    String // shown on the form, e.g. "Annual leave"
+  requests LeaveRequest[]
+}
+
+// One row per request — design §1. Statuses are strings (SQLite has no
+// enum), constrained in TypeScript; see src/lib/leave.ts for the six values
+// and the allowed transitions.
+model LeaveRequest {
+  id               Int        @id @default(autoincrement())
+  employeeId       Int
+  employee         User       @relation("EmployeeRequests", fields: [employeeId], references: [id])
+  supervisorId     Int
+  supervisor       User       @relation("SupervisorRequests", fields: [supervisorId], references: [id])
+  leaveTypeId      Int
+  leaveType        LeaveType  @relation(fields: [leaveTypeId], references: [id])
+  otherLeaveType   String? // required when type is OTHER, empty otherwise
+  startDate        DateTime // first day of leave; today or later
+  endDate          DateTime // last day; not before startDate
+  daysCount        Int // working days, weekends excluded; computed server-side at submit
+  status           String // PENDING_SUPERVISOR | SIGNED | PENDING_HR | APPROVED | REJECTED_BY_SUPERVISOR | REJECTED_BY_HR
+  supervisorRemark String? // required when the supervisor rejects
+  hrOfficerId      Int? // the HR user who approved or rejected
+  hrOfficer        User?      @relation("HrOfficerRequests", fields: [hrOfficerId], references: [id])
+  hrRemark         String? // required when HR rejects
+  submittedAt      DateTime   @default(now())
+  signedAt         DateTime? // set when the supervisor signs or rejects
+  sentToHrAt       DateTime? // set when the employee sends it to HR
+  decidedAt        DateTime? // set when HR approves or rejects
 }

@@ -65,16 +65,16 @@ All tests use the demo password `password123` and the seeded accounts
 
 | Status | ID | Check | How to test |
 |--------|----|-------|-------------|
-| To do | AC-01 | Valid login opens the role's home page | • Go to `/login`<br>• Sign in as `employee-1@budiman.com`<br>• See the `/employee` home page |
-| To do | AC-02 | Each role lands on its own page | • Repeat AC-01 for `supervisor-1@budiman.com` → `/supervisor`, `hr-1@budiman.com` → `/hr`, `admin@budiman.com` → `/admin` |
-| To do | AC-03 | Wrong password and unknown email give the identical generic message | • Sign in as `hr-1@budiman.com` with a wrong password → "Incorrect email or password"<br>• Sign in as `nobody@budiman.com` with any password → same message, same wording |
-| To do | AC-04 | Non-work emails are refused at the form | • Type `siti@gmail.com` in the email field<br>• Asked for a `@budiman.com` work email before any login is attempted |
-| To do | AC-05 | Logged-out visitor is redirected, then returned | • Log out<br>• Open `/hr` directly → see `/login`<br>• Sign in as `hr-1@budiman.com` → land on `/hr` |
-| To do | AC-06 | Wrong role sees the 403 screen, not the page | • Sign in as `employee-1@budiman.com`<br>• Open `/hr` directly → "You are not authorised to view this page" plus a link back to `/employee`<br>• No request data shown |
-| To do | AC-07 | A tampered or forged cookie is treated as logged out | • Sign in as `employee-1@budiman.com`<br>• In dev tools, change any character of the session cookie<br>• Open `/employee` → redirected to `/login` |
-| To do | AC-08 | Session cookie carries the right flags and lifetime | • After login, dev tools → Application → Cookies<br>• Session cookie shows `HttpOnly`, `SameSite=Lax`, `Max-Age=28800` |
-| To do | AC-09 | Logout ends the session everywhere in the tab | • Sign in, click "Log out" → `/login` with "You have been logged out."<br>• Press browser Back, or re-open `/employee` → still taken to `/login` |
-| To do | AC-10 | Passwords are stored hashed only | • Open the SQLite DB (e.g. `npx prisma studio`) → Users<br>• The `password` field shows a bcrypt hash (`$2a$…`), never `password123` |
+| Done | AC-01 | Valid login opens the role's home page | • Go to `/login`<br>• Sign in as `employee-1@budiman.com`<br>• See the `/employee` home page |
+| Done | AC-02 | Each role lands on its own page | • Repeat AC-01 for `supervisor-1@budiman.com` → `/supervisor`, `hr-1@budiman.com` → `/hr`, `admin@budiman.com` → `/admin` |
+| Done | AC-03 | Wrong password and unknown email give the identical generic message | • Sign in as `hr-1@budiman.com` with a wrong password → "Incorrect email or password"<br>• Sign in as `nobody@budiman.com` with any password → same message, same wording |
+| Done | AC-04 | Non-work emails are refused at the form | • Type `siti@gmail.com` in the email field<br>• Asked for a `@budiman.com` work email before any login is attempted |
+| Done | AC-05 | Logged-out visitor is redirected, then returned | • Log out<br>• Open `/hr` directly → see `/login`<br>• Sign in as `hr-1@budiman.com` → land on `/hr` |
+| Done | AC-06 | Wrong role sees the 403 screen, not the page | • Sign in as `employee-1@budiman.com`<br>• Open `/hr` directly → "You are not authorised to view this page" plus a link back to `/employee`<br>• No request data shown |
+| Done | AC-07 | A tampered or forged cookie is treated as logged out | • Sign in as `employee-1@budiman.com`<br>• In dev tools, change any character of the session cookie<br>• Open `/employee` → redirected to `/login` |
+| Done | AC-08 | Session cookie carries the right flags and lifetime | • After login, dev tools → Application → Cookies<br>• Session cookie shows `HttpOnly`, `SameSite=Lax`, `Max-Age=28800` |
+| Done | AC-09 | Logout ends the session everywhere in the tab | • Sign in, click "Log out" → `/login` with "You have been logged out."<br>• Press browser Back, or re-open `/employee` → still taken to `/login` |
+| Done | AC-10 | Passwords are stored hashed only | • Open the SQLite DB (e.g. `npx prisma studio`) → Users<br>• The `password` field shows a bcrypt hash (`$2a$…`), never `password123` |
 
 ## 5. Not included (for now)
 
@@ -215,18 +215,18 @@ required).
 
 | Status | ID | Check | How to test |
 |--------|----|-------|-------------|
-| To do | AC-11 | Submit works; only own-division supervisors offered | • Sign in as `employee-1` → `/employee` → "New request"<br>• Supervisor dropdown shows only Supervisor 1 and Supervisor 2<br>• Submit Annual leave, future dates → confirm prompt; Cancel saves nothing<br>• Confirm → "Leave request submitted." and row "Pending supervisor" |
-| To do | AC-12 | Invalid form values are refused | • End date before start → "End date cannot be before the start date."<br>• Start date in the past → "Start date cannot be in the past."<br>• Type "Other" with empty description → "Please describe what the leave is for."<br>• No row appears in Prisma Studio after each |
-| To do | AC-13 | Days counted exclude weekends | • Submit Tue 2026-12-01 → Mon 2026-12-07<br>• The list shows **5 days** (Sat 5th and Sun 6th excluded) |
-| To do | AC-14 | Supervisor queue shows only requests addressed to me | • Submit a request choosing Supervisor 2<br>• `supervisor-1` → `/supervisor`: not listed<br>• `supervisor-2` → `/supervisor`: listed under "Pending supervisor" |
-| To do | AC-15 | Sign needs a confirmation and shows success | • `supervisor-2` clicks "Sign" → confirm prompt<br>• Cancel → status unchanged<br>• Confirm → "Request signed — waiting for the employee to send it to HR." and status "Signed" |
-| To do | AC-16 | Supervisor rejection needs a remark and tells the employee | • Click "Reject", submit empty → "Please give a reason for rejecting."<br>• Enter a remark, confirm → "Request rejected — the employee can see your reason." and status "Rejected by supervisor"<br>• `employee-1` sees the remark in their list |
-| To do | AC-17 | Only the owner can send a Signed request to HR | • `employee-1`: the "Send to HR" button appears only on Signed rows<br>• Confirm → "Request sent to HR." and status "Pending HR"<br>• No such button on Pending supervisor / decided rows |
-| To do | AC-18 | HR queue is shared and records the deciding officer | • `hr-1` and `hr-2` both see the Pending HR request<br>• `hr-1` approves → status "Approved"; the row records **HR 1** as the deciding officer |
-| To do | AC-19 | HR rejection needs a remark | • `hr-2` clicks "Reject" on a Pending HR request, submit empty → "Please give a reason for rejecting."<br>• Enter a remark → "Request rejected — the employee can see your reason.", status "Rejected by HR", remark visible to the employee |
-| To do | AC-20 | Each role's list shows current + past with status and remarks | • `employee-1`: all own requests, none of any other user's (add a second employee row in Prisma Studio to confirm)<br>• `supervisor-2`: only requests addressed to them, pending and decided<br>• `hr-2`: everything that reached HR |
-| To do | AC-21 | Admin sees every record, changes nothing | • `admin` → `/admin` lists all requests with employee, dates, type, status, remarks, deciding officer<br>• No action buttons anywhere on the page |
-| To do | AC-22 | The server, not the buttons, enforces the flow | • Two tabs, both HR: `hr-1` approves, then `hr-2`'s stale tab approves too → "This request has already been decided."<br>• As `employee-1`, craft a submit-for-others action in dev tools → refused, no change<br>• Dev-tools submit with `supervisorId` of `hr-1` (not a supervisor) or a supervisor from another division → "Please choose a supervisor from your own division.", no row saved<br>• Sign an already-signed request → refused |
+| Done | AC-11 | Submit works; only own-division supervisors offered | • Sign in as `employee-1` → `/employee` → "New request"<br>• Supervisor dropdown shows only Supervisor 1 and Supervisor 2<br>• Submit Annual leave, future dates → confirm prompt; Cancel saves nothing<br>• Confirm → "Leave request submitted." and row "Pending supervisor" |
+| Done | AC-12 | Invalid form values are refused | • End date before start → "End date cannot be before the start date."<br>• Start date in the past → "Start date cannot be in the past."<br>• Type "Other" with empty description → "Please describe what the leave is for."<br>• No row appears in Prisma Studio after each |
+| Done | AC-13 | Days counted exclude weekends | • Submit Tue 2026-12-01 → Mon 2026-12-07<br>• The list shows **5 days** (Sat 5th and Sun 6th excluded) |
+| Done | AC-14 | Supervisor queue shows only requests addressed to me | • Submit a request choosing Supervisor 2<br>• `supervisor-1` → `/supervisor`: not listed<br>• `supervisor-2` → `/supervisor`: listed under "Pending supervisor" |
+| Done | AC-15 | Sign needs a confirmation and shows success | • `supervisor-2` clicks "Sign" → confirm prompt<br>• Cancel → status unchanged<br>• Confirm → "Request signed — waiting for the employee to send it to HR." and status "Signed" |
+| Done | AC-16 | Supervisor rejection needs a remark and tells the employee | • Click "Reject", submit empty → "Please give a reason for rejecting."<br>• Enter a remark, confirm → "Request rejected — the employee can see your reason." and status "Rejected by supervisor"<br>• `employee-1` sees the remark in their list |
+| Done | AC-17 | Only the owner can send a Signed request to HR | • `employee-1`: the "Send to HR" button appears only on Signed rows<br>• Confirm → "Request sent to HR." and status "Pending HR"<br>• No such button on Pending supervisor / decided rows |
+| Done | AC-18 | HR queue is shared and records the deciding officer | • `hr-1` and `hr-2` both see the Pending HR request<br>• `hr-1` approves → status "Approved"; the row records **HR 1** as the deciding officer |
+| Done | AC-19 | HR rejection needs a remark | • `hr-2` clicks "Reject" on a Pending HR request, submit empty → "Please give a reason for rejecting."<br>• Enter a remark → "Request rejected — the employee can see your reason.", status "Rejected by HR", remark visible to the employee |
+| Done | AC-20 | Each role's list shows current + past with status and remarks | • `employee-1`: all own requests, none of any other user's (add a second employee row in Prisma Studio to confirm)<br>• `supervisor-2`: only requests addressed to them, pending and decided<br>• `hr-2`: everything that reached HR |
+| Done | AC-21 | Admin sees every record, changes nothing | • `admin` → `/admin` lists all requests with employee, dates, type, status, remarks, deciding officer<br>• No action buttons anywhere on the page |
+| Done | AC-22 | The server, not the buttons, enforces the flow | • Two tabs, both HR: `hr-1` approves, then `hr-2`'s stale tab approves too → "This request has already been decided."<br>• As `employee-1`, craft a submit-for-others action in dev tools → refused, no change<br>• Dev-tools submit with `supervisorId` of `hr-1` (not a supervisor) or a supervisor from another division → "Please choose a supervisor from your own division.", no row saved<br>• Sign an already-signed request → refused |
 
 ## 6. Not included (for now)
 

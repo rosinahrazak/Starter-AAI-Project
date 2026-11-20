@@ -12,6 +12,11 @@ const ROLE_BY_PATH: Record<string, Role> = Object.fromEntries(
   Object.entries(HOME_BY_ROLE).map(([role, path]) => [path, role as Role])
 );
 
+// Nested role areas: the exact home-path map above would let any logged-in
+// role through to e.g. /employee/leave/new, so prefixes gate them too
+// (leave design §4; pages and actions still check again — rule 13).
+const ROLE_BY_PREFIX: Array<[string, Role]> = [["/employee/leave/", "EMPLOYEE"]];
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = await verifySessionToken(
@@ -38,7 +43,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // Wrong role: the 403 screen, not the page (AC-06).
-  const requiredRole = ROLE_BY_PATH[pathname];
+  const requiredRole =
+    ROLE_BY_PATH[pathname] ??
+    ROLE_BY_PREFIX.find(([prefix]) => pathname.startsWith(prefix))?.[1];
   if (requiredRole && session.role !== requiredRole) {
     return NextResponse.redirect(new URL("/unauthorised", request.nextUrl));
   }

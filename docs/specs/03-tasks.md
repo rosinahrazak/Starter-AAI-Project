@@ -178,15 +178,15 @@ Tasks 1–9 (login) are Done; this module continues the numbering.
 
 | Status | # | Task | Priority | Checks (from requirements §5) |
 |--------|---|------|----------|-------------------------------|
-| To do | 10 | LeaveType + LeaveRequest tables | High | AC-11 (tables part) |
-| To do | 11 | Seed the five leave types | High | AC-11 (types part) |
-| To do | 12 | Submit form + working-day count | High | AC-11, AC-12, AC-13 |
-| To do | 13 | Employee list with statuses and remarks | High | AC-20 (employee part) |
-| To do | 14 | Send to HR | High | AC-17 |
-| To do | 15 | Supervisor queue — sign and reject | High | AC-14, AC-15, AC-16 |
-| To do | 16 | HR queue — approve and reject | High | AC-18, AC-19 |
-| To do | 17 | Admin read-only list | Medium | AC-21 |
-| To do | 18 | Full check against the specs | High | AC-11–AC-22 + `npm run lint` |
+| Done | 10 | LeaveType + LeaveRequest tables | High | AC-11 (tables part) |
+| Done | 11 | Seed the five leave types | High | AC-11 (types part) |
+| Done | 12 | Submit form + working-day count | High | AC-11, AC-12, AC-13 |
+| Done | 13 | Employee list with statuses and remarks | High | AC-20 (employee part) |
+| Done | 14 | Send to HR | High | AC-17 |
+| Done | 15 | Supervisor queue — sign and reject | High | AC-14, AC-15, AC-16 |
+| Done | 16 | HR queue — approve and reject | High | AC-18, AC-19 |
+| Done | 17 | Admin read-only list | Medium | AC-21 |
+| Done | 18 | Full check against the specs | High | AC-11–AC-22 + `npm run lint` |
 
 ---
 

@@ -11,7 +11,7 @@
 | `icNumber` | text | yes | Identity card number, format `xx-xxxxxx` (two digits, hyphen, six digits), e.g. `00-148888`. Profile data only — never used to log in |
 | `email` | text | yes | Work email, always ends `@budiman.com`. **Unique.** Used to log in |
 | `password` | text | yes | bcrypt hash of the password (cost 10, bcryptjs). Never plain text, never shown anywhere |
-| `role` | enum | yes | Exactly one of `EMPLOYEE`, `SUPERVISOR`, `HR`, `ADMIN` |
+| `role` | text | yes | Exactly one of `EMPLOYEE`, `SUPERVISOR`, `HR`, `ADMIN`. SQLite has no enum type, so Prisma stores a string; TypeScript (a `Role` union) and the seed enforce the four values |
 | `division` | text | yes | One of the divisions in Reference A |
 | `designation` | text | yes | Job title from the chosen division (Reference A) |
 | `createdAt` | date | auto | Set by the system when the row is created |
@@ -36,10 +36,11 @@ tables — nothing in login needs to add or edit them.
    `SameSite=Lax`, `Max-Age=28800` (8 hours), path `/`. An expired, tampered
    or forged cookie counts as logged out — the signature is re-checked on
    every request (AC-07, AC-08).
-7. **Every page and action is checked on the server.** Middleware rejects
-   logged-out visitors and shows the 403 screen for the wrong role; pages and
-   server actions check again before doing anything. Links and buttons are
-   convenience, never the actual check (FR-01, AC-05, AC-06).
+7. **Every page and action is checked on the server.** Proxy (Next.js 16's
+   renamed middleware) rejects logged-out visitors and shows the 403 screen
+   for the wrong role; pages and server actions check again before doing
+   anything. Links and buttons are convenience, never the actual check
+   (FR-01, AC-05, AC-06).
 8. **Guests are sent to login and returned.** A logged-out user opening a
    protected page goes to `/login?next=<that page>` and, after login, lands
    there. `next` must be a plain internal path of the user's own role,
@@ -67,7 +68,7 @@ tables — nothing in login needs to add or edit them.
 | Database | SQLite with Prisma | One file, no database server to install |
 | Styling | Tailwind CSS 4 | Styles sit next to each screen |
 | Password hashing | bcryptjs (cost 10) | Salted hashes, per brief §7.1 |
-| Session | Signed cookie via `jose` (HMAC-SHA256), verified in middleware | Stateless — no session table; tampering is detectable. `jose` is one small new dependency to approve |
+| Session | Signed cookie via `jose` (HMAC-SHA256), verified in proxy | Stateless — no session table; tampering is detectable. `jose` is one small new dependency to approve (it is the session library the Next.js docs recommend) |
 | Secret | `SESSION_SECRET` in `.env` | Signs the cookie; never in the code or git |
 
 ## 4. Screens (routes)
@@ -89,14 +90,16 @@ Every page except `/login` carries the header with the user's name and a
 
 | Folder / file | What's in it |
 |---------------|--------------|
-| `prisma/schema.prisma` | The `User` model and `Role` enum |
+| `prisma/schema.prisma` | The `User` model (role stored as a string, constrained to the four roles in TypeScript) |
 | `prisma/seed.ts` | The six demo users (Reference B), hashed with bcryptjs |
-| `src/lib/session.ts` | Create, sign and verify the session cookie |
+| `src/lib/session.ts` | Create, sign and verify the session cookie; role → home page map |
+| `src/lib/db.ts` | One shared Prisma client |
 | `src/lib/auth.ts` | `requireUser()` / `requireRole()` used by pages and server actions |
-| `src/middleware.ts` | Verifies the cookie on every route; guest → `/login?next=…`, wrong role → `/unauthorised` |
+| `src/proxy.ts` | Verifies the cookie on every route; guest → `/login?next=…`, wrong role → `/unauthorised` (Next.js 16 renamed middleware to proxy — see its docs) |
 | `src/app/layout.tsx` | Shell + header (user name, "Log out" server action) |
 | `src/app/page.tsx` | The `/` redirect |
-| `src/app/login/page.tsx` | The login form and its messages |
+| `src/app/login/page.tsx` | The login screen: form, error message, logout notice |
+| `src/app/login/login-form.tsx` | The form itself (client component for `useActionState`) |
 | `src/app/login/actions.ts` | Server actions: `login` (check credentials, set cookie) and `logout` (clear cookie) |
 | `src/app/employee/page.tsx` | Employee placeholder home |
 | `src/app/supervisor/page.tsx` | Supervisor placeholder home |
@@ -138,6 +141,44 @@ conventions.
 | `npm run dev` | Start the app at http://localhost:3000 |
 | `npm run lint` | Check the code style — must pass before finishing |
 | `npx prisma studio` | Open the database to check passwords are hashed (AC-10) |
+
+## 8. Look and feel (visual reference)
+
+Visual reference: the sunset-mountain mockup the team provided (image of the
+login screen). This section changes **appearance only** — routes, checks,
+behaviour and the exact message wordings named in the acceptance checks
+("Incorrect email or password", "You have been logged out.", "You are not
+authorised to view this page", "Log out") are untouched.
+
+- **Backdrop.** Every screen sits on a full-page sunset gradient rendered in
+  CSS (`.sunset-bg` in `src/app/globals.css`): deep purple at the top, hot
+  pink in the middle, a warm peach band at the horizon, indigo foreground.
+  No image file is used — the attached JPG is a mockup screenshot with its
+  own UI baked in, not a clean backdrop.
+- **Frosted-glass card** (`.glass-card`): login card, the four role homes and
+  the 403 screen each put their content in one centred card — 1 px
+  translucent-white border, ~18 % white fill, background blur, 24 px rounded
+  corners, soft drop shadow, generous padding (≈2rem). Login card ≈ 384 px
+  wide (`max-w-sm`), home/403 cards ≈ 512 px (`max-w-lg`).
+- **Header (logged in only).** Sits transparent on the gradient in white
+  text: brand "Budiman HRMS" left; user name and "Log out" right. The
+  "Log out" button reuses the mockup's outlined-button look: white text,
+  1 px translucent-white border, 8 px corners, faint white fill on hover.
+- **Login form.** Labels stay on the fields for screen readers (`sr-only`)
+  and the mockup's in-field placeholders ("Email", "Password") are shown;
+  inputs are transparent with a bottom border only, and envelope/lock icons
+  sit right-aligned inside them (inline SVG). Submit button: mockup purple
+  (Tailwind `purple-800`), white semibold label, 8 px corners, full width.
+- **Status messages** keep their roles (`status`/`alert`) and wordings, now
+  as pills inside the card: green (`emerald-600`) for the logout notice, red
+  (`red-600`) for the login error, white text.
+- **Type.** Card titles bold dark navy (`indigo-950`) as in the mockup;
+  supporting text the same navy at reduced opacity.
+
+**Deliberately not copied from the mockup:** the "Remember me" checkbox,
+"Forget Password" and "Register" links, and the card's close (×) button.
+Those features are out of scope (requirements §5, business rule 11);
+showing non-working controls would mislead users (interview decision).
 
 ---
 

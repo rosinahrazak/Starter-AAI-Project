@@ -5,15 +5,15 @@ Do Low only if time is left, and only if you ask.
 
 | Status | # | Task | Priority | Checks (from requirements §4) |
 |--------|---|------|----------|-------------------------------|
-| To do | 1 | Prisma setup + Users table | High | AC-10 (table part) |
-| To do | 2 | Seed the six demo users | High | AC-10 |
-| To do | 3 | Session library (sign / verify cookie) | High | AC-07, AC-08 (library part) |
-| To do | 4 | Login form + server action | High | AC-01, AC-03, AC-04 |
-| To do | 5 | Role home pages + `/` redirect | High | AC-01, AC-02 |
-| To do | 6 | Middleware gate + `/unauthorised` screen | High | AC-05 (redirect part), AC-06, AC-07 |
-| To do | 7 | Return to the page asked for | Medium | AC-05 (return part) |
-| To do | 8 | Header + one-click logout | High | AC-09 |
-| To do | 9 | Full check against the specs | High | All ACs + `npm run lint` |
+| Done | 1 | Prisma setup + Users table | High | AC-10 (table part) |
+| Done | 2 | Seed the six demo users | High | AC-10 |
+| Done | 3 | Session library (sign / verify cookie) | High | AC-07, AC-08 (library part) |
+| Done | 4 | Login form + server action | High | AC-01, AC-03, AC-04 |
+| Done | 5 | Role home pages + `/` redirect | High | AC-01, AC-02 |
+| Done | 6 | Proxy gate + `/unauthorised` screen | High | AC-05 (redirect part), AC-06, AC-07 |
+| Done | 7 | Return to the page asked for | Medium | AC-05 (return part) |
+| Done | 8 | Header + one-click logout | High | AC-09 |
+| Done | 9 | Full check against the specs | High | All ACs + `npm run lint` |
 
 ---
 
@@ -30,7 +30,8 @@ Do Low only if time is left, and only if you ask.
   • Run `npx prisma studio` → open `User`
   • You should see all nine fields from design §1 (`id`, `name`, `icNumber`,
     `email`, `password`, `role`, `division`, `designation`, `createdAt`),
-    `email` marked unique, `role` an enum of the four roles, and zero rows.
+    `email` marked unique, `role` a string constrained to the four roles in
+    TypeScript, and zero rows.
 
 ## Task 2 – Seed the six demo users *(High)*
 
@@ -102,14 +103,15 @@ Do Low only if time is left, and only if you ask.
     `admin@…` → `/admin` (AC-02)
   • Visit `/` while signed in → your role's home; logged out → `/login`.
 
-## Task 6 – Middleware gate + `/unauthorised` screen *(High)*
+## Task 6 – Proxy gate + `/unauthorised` screen *(High)*
 
 - **Goal:** Every route is gated in one place before the page runs: no valid
   session → `/login`, valid session but wrong role → `/unauthorised`, which
   explains the refusal and links home.
-- **Files:** `src/middleware.ts` (new), `src/app/unauthorised/page.tsx` (new).
+- **Files:** `src/proxy.ts` (new — Next.js 16 renamed middleware to proxy),
+  `src/app/unauthorised/page.tsx` (new).
 - **From:** U5, U9; AC-05 (redirect part), AC-06, AC-07; design §4
-  (`/unauthorised`), rules 7–9, §5 (`src/middleware.ts`); brief FR-01.
+  (`/unauthorised`), rules 7–9, §5 (`src/proxy.ts`); brief FR-01.
 - **Check:**
   • Log out, open `/hr` directly → see `/login` (AC-05 redirect part)
   • Sign in as `employee-1@budiman.com`, open `/hr` → "You are not authorised
@@ -123,7 +125,7 @@ Do Low only if time is left, and only if you ask.
   tried to open — but only if it is a plain internal path their role may
   see; anything else goes to their home (no open redirects).
 - **Files:** `src/app/login/page.tsx`, `src/app/login/actions.ts` (the `next`
-  handling); middleware passes `next`.
+  handling); proxy passes `next` as a query parameter.
 - **From:** U8 (Medium), AC-05 (return part); design rule 8.
 - **Check:**
   • Log out, open `/hr` directly → `/login?next=/hr`

@@ -1,0 +1,23 @@
+// Prisma schema for Budiman HRMS — Leave Request module.
+// See docs/specs/02-design.md §1 for the field-by-field meaning.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String
+  icNumber    String // xx-xxxxxx, e.g. 00-148888. Profile data only, not a login id
+  email       String   @unique // work email, always @budiman.com — used to log in
+  password    String // bcrypt hash ($2a$…), never plain text
+  role        String // EMPLOYEE | SUPERVISOR | HR | ADMIN — constrained in TypeScript (SQLite has no enum)
+  division    String // one of the divisions in design Reference A
+  designation String // job title from the chosen division
+  createdAt   DateTime @default(now())
+}
